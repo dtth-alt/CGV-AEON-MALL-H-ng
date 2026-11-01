@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CGV AEON MALL Hà Đông – Bán vé xem phim</title>
+<style>
+:root{--bg:#f6f4f1;--fg:#1d1b1a;--card:#fff;--mut:#6b6560;--bd:#ddd6cf;--red:#e71a0f;--ok:#1a7f4b;--warn:#b86e00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171514;--fg:#f2eeea;--card:#242120;--mut:#a39c95;--bd:#3a3533;--ok:#4cc486;--warn:#f0a53c}}
+:root[data-theme="dark"]{--bg:#171514;--fg:#f2eeea;--card:#242120;--mut:#a39c95;--bd:#3a3533;--ok:#4cc486;--warn:#f0a53c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--red);color:#fff;padding:14px 16px}header h1{margin:0;font-size:20px}header p{margin:2px 0 0;font-size:13px;opacity:.9}
+nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
+nav button,.btn{border:1px solid var(--bd);background:var(--card);color:var(--fg);padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on,.btn.p{background:var(--red);border-color:var(--red);color:#fff}
+main{padding:14px 16px;max-width:1150px;margin:auto}.src{color:var(--mut);font-size:12.5px;margin:0 0 10px}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}input,select{padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--fg);font:inherit;max-width:100%}
+.w{overflow-x:auto;background:var(--card);border:1px solid var(--bd);border-radius:10px}table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}th{background:var(--bg);color:var(--mut);font-weight:600;position:sticky;top:0}
+.ok{color:var(--ok)}.wn{color:var(--warn)}.no{color:var(--red)}.note{margin:8px 0;color:var(--mut);font-size:13px}
+#m{position:fixed;inset:0;background:#000a;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:16px;z-index:20}
+#m>div{background:var(--card);border-radius:12px;padding:16px;width:100%;max-width:640px;margin:auto}
+.row{display:flex;gap:4px;align-items:center;margin:3px 0;flex-wrap:wrap}.row b{width:18px}
+.sb{width:30px;height:28px;padding:0;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--fg);cursor:pointer;font-size:12px}
+.sb.VIP{border-color:#c28b00}.sb.Sweetbox{border-color:#d6409f}.sb.Recliner,.sb.\34DX{border-color:#2f7de1}
+.sb.s{background:var(--bd);color:var(--mut);cursor:not-allowed;text-decoration:line-through}.sb.on{background:var(--red);color:#fff;border-color:var(--red)}
+.screen{text-align:center;color:var(--mut);border-top:3px solid var(--bd);margin:8px 30px;font-size:12px}
+.tot{font-size:18px;font-weight:700;margin:10px 0}#t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:8px;display:none;z-index:30}
+</style></head><body>
+<header><h1>CGV AEON MALL Hà Đông</h1><p>Hệ thống bán vé xem phim · CSDL CGV_AeonMall_HaDong</p></header>
+<nav id="nav"></nav><main id="main"></main><div id="m"><div id="mc"></div></div><div id="t"></div>
+<script>
+const pad=(n,l)=>String(n).padStart(l,'0'),money=n=>Number(n).toLocaleString('vi-VN')+'đ',v=i=>document.getElementById(i).value;
+const E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=ms=>{const d=new Date(ms);return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2)+' '+pad(d.getHours(),2)+':'+pad(d.getMinutes(),2)};
+function mk(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mk(8),R=n=>Math.floor(rnd()*n);
+/* ===== Dữ liệu gốc từ file SQL ===== */
+const PC=[['P01','Rạp 1','2D Standard',8,10],['P02','Rạp 2','2D Standard',8,10],['P03','Rạp 3','3D',8,10],['P04','Rạp 4','3D',8,10],['P05','Rạp 5','2D Standard',8,10],['P06','Rạp 6','2D Standard',8,10],['P07','Gold Class','Gold Class',3,8],['P08','Rạp 4DX','4DX',5,8]].map(([id,ten,loai,h,c])=>({id,ten,loai,h,c,cap:h*c}));
+const PCm=Object.fromEntries(PC.map(p=>[p.id,p]));
+const gType=(p,h)=>p=='P07'?'Recliner':p=='P08'?'4DX Motion':h=='H'?'Sweetbox':'DEFG'.includes(h)?'VIP':'Thường';
+const seatsOf=p=>{const o=[];for(const h of 'ABCDEFGH'.slice(0,p.h))for(let n=1;n<=p.c;n++)o.push(p.id+'-'+h+pad(n,2));return o};
+const price=(p,t,g)=>{const l=g>='17:00';if(p=='P07')return l?280000:250000;if(p=='P08')return l?180000:160000;return({VIP:100000,Sweetbox:130000}[t]||85000)+(l?(t=='Sweetbox'?20000:10000):0)+(p=='P03'||p=='P04'?15000:0)};
+const PH=`PH01|Trại Buôn Người|Hành động - Tâm lý|118|2026-09-02|T18
+PH02|Chị Chị Em Em 3|Chính kịch - Kinh dị|115|2026-10-30|T18
+PH03|Mẹ Mìn|Hình sự - Gia đình|105|2026-10-23|T16
+PH04|Án Mạng Karaoke|Hài - Hình sự|100|2026-10-30|T16
+PH05|Trấn Yểm|Kinh dị|108|2026-10-30|T18
+PH06|Huyết Thống|Tâm lý - Gia đình|110|2026-10-30|T16
+PH07|Quỷ Ăn Tạng 4: Hổ Tinh|Kinh dị|105|2026-10-16|T18
+PH08|Avengers: Hồi Kết|Hành động - Viễn tưởng|150|2026-09-25|T13
+PH09|Trái Tim Quái Thú|Phiêu lưu - Sinh tồn|111|2026-10-02|T13
+PH10|Khóa Chặt Cửa Nào Suzume|Hoạt hình - Phiêu lưu|122|2026-10-02|P
+PH11|Út Lan 2|Hài - Gia đình|105|2026-09-26|T13
+PH12|Lên Hương|Chính kịch - Hài|100|2026-09-19|T13
+PH13|Người Mẹ Khác|Kinh dị - Giật gân|100|2026-10-09|T13
+PH14|Always Lalisa|Âm nhạc - Tài liệu|100|2026-10-12|P
+PH15|Digger|Hành động - Hài đen|101|2026-10-02|T16
+PH16|Street Fighter|Hành động - Võ thuật|125|2026-10-16|T16
+PH17|Clayface|Kinh dị - Siêu anh hùng|105|2026-10-09|T16
+PH18|Bò Sữa Bay|Hài - Gia đình|100|2026-11-06|P
+PH19|Chuyến Đi Nhớ Đời|Hài - Chính kịch|105|2026-11-06|T13
+PH20|Người Được Chọn|Kinh dị - Tâm lý|105|2026-11-06|T16
+PH21|Án Mạng Xém Hoàn Hảo|Hài - Hình sự|100|2026-10-16|T16
+PH22|Một Giữa Vạn Người|Chính kịch|105|2026-10-23|T13
+PH23|Công Nữ Ngọc Hoa|Cổ trang - Chính kịch|115|2026-10-30|T13
+PH24|Quyết Cua Anh Này|Tình cảm - Hài|96|2026-10-02|T13
+PH25|Quỷ Dắt Tay|Kinh dị|98|2026-10-02|T18
+PH26|Cá Voi Nuốt Chửng|Phiêu lưu - Chính kịch|100|2026-10-02|T13
+PH27|Mai|Tâm lý - Tình cảm|131|2024-02-10|T18
+PH28|Lật Mặt 7: Một Điều Ước|Chính kịch - Gia đình|138|2024-04-26|T13
+PH29|Đào, Phở và Piano|Chiến tranh - Lịch sử|100|2024-02-10|T13
+PH30|Nhà Bà Nữ|Hài - Gia đình|102|2023-01-22|T16`.split('\n').map(l=>{const a=l.split('|');return{id:a[0],ten:a[1],tl:a[2],dur:+a[3],kc:a[4],dt:a[5]}});
+const PHm=Object.fromEntries(PH.map(p=>[p.id,p]));
+const KH='Nguyễn Văn An;Trần Thị Bích Ngọc;Lê Hoàng Nam;Phạm Minh Tuấn;Hoàng Thu Hà;Vũ Đức Anh;Đặng Khánh Linh;Bùi Quang Huy;Đỗ Thùy Dương;Ngô Thanh Tùng;Dương Mai Phương;Lý Gia Bảo;Phan Thị Hồng Nhung;Trịnh Văn Long;Đinh Ngọc Ánh;Lương Hải Đăng;Mai Phương Thảo;Tạ Quốc Việt;Cao Thị Lan Anh;Hồ Minh Khôi;Nguyễn Thị Thu Trang;Trần Đức Thịnh;Lê Thị Mỹ Linh;Phạm Hữu Phước;Vương Bảo Châu;Kiều Anh Thư;Nguyễn Hoàng Long;Chu Thị Hương;Bạch Tuấn Kiệt;Doãn Ngọc Mai;Thân Văn Hiếu;Quách Thị Diệu Linh;Âu Dương Khải;Tống Thị Hải Yến;Lâm Gia Huy;Nguyễn Thanh Bình;Trần Quỳnh Anh;Lê Văn Cường;Phạm Thị Thanh Hoa;Hoàng Đức Minh;Vũ Thị Ngân;Đặng Quốc Bảo;Bùi Thị Kim Oanh;Đỗ Văn Thắng;Ngô Bảo Ngọc;Dương Văn Tài;Lý Thị Hạnh;Phan Anh Dũng;Trịnh Thị Thu Hiền;Đinh Công Danh;Lương Thị Mai;Mai Văn Phúc;Tạ Thị Yến Nhi;Cao Minh Quân;Hồ Thị Thanh Tâm;Nguyễn Đình Khoa;Trần Thị Lệ;Lê Quang Vinh;Phạm Ngọc Diệp;Hoàng Văn Lâm'.split(';').map((t,i)=>({id:'KH'+pad(i+1,3),ten:t,sdt:'09020'+pad(i+1,5)}));
+const NV='Nguyễn Thành Trung|Quản lý rạp;Trần Thu Hằng|Phó quản lý;Lê Thị Hoài|Nhân viên bán vé;Phạm Văn Đạt|Nhân viên bán vé;Hoàng Mỹ Duyên|Nhân viên bán vé;Vũ Anh Quân|Nhân viên bán vé;Đặng Ngọc Hân|Nhân viên bán vé;Bùi Văn Sơn|Nhân viên soát vé;Đỗ Thị Thanh Tâm|Nhân viên soát vé;Ngô Minh Hiếu|Nhân viên soát vé;Dương Thị Kim Chi|Nhân viên quầy F&B;Lý Quốc Bảo|Nhân viên quầy F&B;Phan Thùy Trâm|Nhân viên quầy F&B;Trịnh Văn Mạnh|Nhân viên kỹ thuật;Đinh Thị Lụa|Nhân viên vệ sinh;Trương Thị Hạnh|Nhân viên soát vé;Lâm Văn Phong|Nhân viên soát vé;Cao Thị Bích|Nhân viên quầy F&B;Mai Quốc Tuấn|Nhân viên bán vé;Tạ Văn Kiên|Nhân viên kỹ thuật;Nguyễn Thị Phương|Nhân viên bán vé;Trần Quốc Huy|Nhân viên bán vé;Lê Thị Ngọc Diệp|Nhân viên soát vé;Phạm Đức Thành|Nhân viên soát vé;Hoàng Thị Thu Hiền|Nhân viên quầy F&B;Vũ Minh Khang|Nhân viên quầy F&B;Đặng Thị Ánh Tuyết|Nhân viên quầy F&B;Bùi Văn Toàn|Nhân viên bảo vệ;Đỗ Quang Thắng|Nhân viên bảo vệ;Ngô Thị Thanh Mai|Kế toán'.split(';').map((t,i)=>{const a=t.split('|');return{id:'NV'+pad(i+1,3),ten:a[0],cv:a[1],sdt:'0988'+pad(i+1,6)}});
+const NVm=Object.fromEntries(NV.map(n=>[n.id,n]));
+const SP='Bắp rang bơ ngọt (M)|45000|600;Bắp rang bơ ngọt (L)|59000|500;Bắp phô mai (L)|69000|400;Bắp caramel (L)|69000|400;Pepsi (M)|35000|800;Pepsi (L)|42000|700;7Up (M)|35000|600;Nước suối Aquafina|25000|900;Trà đào cam sả|49000|400;Cà phê sữa đá|45000|400;Hot dog|49000|350;Xúc xích nướng|39000|350;Khoai tây chiên|45000|400;Gà viên chiên|55000|350;Combo Solo (1 bắp + 1 nước)|89000|500;Combo Couple (1 bắp + 2 nước)|129000|500;Combo Family (2 bắp + 4 nước)|199000|300;Kem ốc quế|29000|500;Snack khoai tây|25000|600;Nước ép cam|45000|300;Trà sữa trân châu|55000|350;Nachos phô mai|59000|300;Sting dâu (M)|35000|500;Coca-Cola (M)|35000|600;Nước suối Lavie|20000|800;Cà phê đen|39000|300;Bánh quy bơ|29000|400;Cá viên chiên|49000|350;Combo Gold Class|249000|300;Bắp mix vị (L)|75000|400'.split(';').map((t,i)=>{const a=t.split('|');return{id:'SP'+pad(i+1,2),ten:a[0],gia:+a[1],ton0:+a[2]}});
+const SPm=Object.fromEntries(SP.map(s=>[s.id,s]));
+/* Suất chiếu: 5 ngày x 8 phòng x 4 khung giờ (cùng công thức với script SQL) */
+const NG=['2026-10-30','2026-10-31','2026-11-01','2026-11-02','2026-11-03'],SL=['09:30','13:00','16:30','20:00'];
+const TW={PH01:5,PH02:5,PH03:3,PH04:3,PH05:3,PH06:3,PH07:2,PH08:3,PH09:2,PH10:2,PH11:1,PH12:1,PH13:1,PH14:1,PH15:1,PH16:2,PH17:1,PH21:1,PH22:1,PH23:1,PH24:1,PH25:1,PH26:1,PH27:1,PH28:1,PH29:1,PH30:1};
+const pool=[];Object.keys(TW).sort().forEach(k=>{for(let i=0;i<TW[k];i++)pool.push(k)});
+const SC=[];NG.forEach((ng,d)=>PC.forEach((p,r)=>SL.forEach((g,s)=>{const ph=PHm[pool[((d+1)*7+(r+1)*3+(s+1)*5)%pool.length]],t=new Date('2000-01-01T'+g+':00').getTime()+(ph.dur+15)*6e4,e=new Date(t);SC.push({id:'SC'+pad(SC.length+1,3),ph:ph.id,room:p.id,ngay:ng,bd:g,kt:pad(e.getHours(),2)+':'+pad(e.getMinutes(),2)})})));
+const SCm=Object.fromEntries(SC.map(s=>[s.id,s]));
+/* Phân công ca trực */
+const MAU=[['NV008','Ca sáng','P01'],['NV009','Ca sáng','P03'],['NV010','Ca sáng','P05'],['NV016','Ca sáng','P07'],['NV008','Ca chiều','P02'],['NV009','Ca chiều','P04'],['NV010','Ca chiều','P06'],['NV017','Ca chiều','P08'],['NV008','Ca tối','P07'],['NV009','Ca tối','P08'],['NV010','Ca tối','P01'],['NV014','Ca sáng',null],['NV015','Ca tối',null],['NV003','Ca sáng',null],['NV019','Ca chiều',null]];
+const PCT=[];NG.forEach(n=>MAU.forEach(m=>PCT.push({id:'PC'+pad(PCT.length+1,3),nv:m[0],room:m[2],ngay:n,ca:m[1]})));
+/* ===== Giao dịch (mô phỏng, đúng quy tắc giá & điểm của script) ===== */
+const HD=[],VE=[],CT=[];
+function addOrder(o){const id='HD'+pad(HD.length+1,4);let t=0;
+ (o.seats||[]).forEach(g=>{const s=SCm[o.sc],gia=price(s.room,gType(s.room,g.split('-')[1][0]),s.bd);t+=gia;VE.push({id:'VE'+pad(VE.length+1,4),sc:o.sc,ghe:g,hd:id,gia})});
+ (o.fb||[]).forEach(([sp,sl])=>{const tt=sl*SPm[sp].gia;t+=tt;CT.push({hd:id,sp,sl,tt})});
+ HD.push({id,kh:o.kh,nv:o.nv,time:o.time,pt:o.pt,tt:'Đã thanh toán',tong:t});return id}
+const PT=['Tiền mặt','Thẻ ngân hàng','Momo','ZaloPay','VNPay'];
+const pickFb=()=>{const n=1+R(3),s=new Set(),a=[];while(s.size<n)s.add(R(30));s.forEach(i=>a.push([SP[i].id,1+R(3)]));return a};
+SC.forEach(s=>{const a=seatsOf(PCm[s.room]);for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}let k=0;
+ for(let j=0,n=R(4);j<n;j++){const c=1+R(4),sel=a.slice(k,k+c);k+=c;
+  addOrder({sc:s.id,seats:sel,kh:R(10)<7?'KH'+pad(1+R(60),3):null,nv:'NV00'+(3+R(5)),pt:PT[R(5)],time:new Date(s.ngay+'T'+s.bd+':00').getTime()-(15+R(600))*6e4,fb:R(100)<65?pickFb():[]})}});
+for(let i=0;i<30;i++)addOrder({kh:R(10)<6?'KH'+pad(1+R(60),3):null,nv:'NV0'+(11+R(3)),pt:PT[R(5)],time:new Date('2026-10-30T00:00:00').getTime()+(540+R(780))*6e4+R(5)*864e5,fb:pickFb()});
+/* Dữ liệu dẫn xuất */
+const diem=k=>Math.floor(HD.filter(h=>h.kh==k).reduce((a,h)=>a+h.tong,0)/10000);
+const ton=s=>SPm[s].ton0-CT.filter(c=>c.sp==s).reduce((a,c)=>a+c.sl,0);
+const sold=sc=>VE.filter(x=>x.sc==sc);
+const soSuat=p=>SC.filter(s=>s.ph==p).length;
+/* ===== Giao diện ===== */
+const tbl=(h,rows)=>`<div class="w"><table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${h.length}">Không có dữ liệu</td></tr>`}</table></div>`;
+const opts=(a,sel)=>a.map(x=>`<option value="${E(x[0])}"${x[0]==sel?' selected':''}>${E(x[1])}</option>`).join('');
+const T={
+lich:{n:'Lịch chiếu',src:'View vw_LichChieuChiTiet · Truy vấn 2 (lịch chiếu + phòng chiếu)',
+ ctl:()=>`<div class="ctl"><select id="d" onchange="upd()">${opts([['','Tất cả ngày'],...NG.map(n=>[n,n])],'2026-11-01')}</select><select id="lp" onchange="upd()">${opts([['','Mọi loại phòng'],...[...new Set(PC.map(p=>p.loai))].map(x=>[x,x])])}</select><input id="q" placeholder="Tìm tên phim..." oninput="upd()"></div>`,
+ run:()=>{const q=v('q').toLowerCase();return tbl(['Mã','Phim','Thể loại','Phút','Tuổi','Phòng','Loại','Ngày','Giờ','Còn trống',''],SC.filter(s=>(!v('d')||s.ngay==v('d'))&&(!v('lp')||PCm[s.room].loai==v('lp'))&&PHm[s.ph].ten.toLowerCase().includes(q)).sort((a,b)=>(a.ngay+a.bd).localeCompare(b.ngay+b.bd)).map(s=>{const p=PHm[s.ph],r=PCm[s.room],c=r.cap-sold(s.id).length;return[s.id,E(p.ten),p.tl,p.dur,p.dt,r.ten,r.loai,s.ngay,s.bd+'–'+s.kt,c,`<button class="btn p" onclick="book('${s.id}')">Đặt vé</button>`]}))}},
+phim:{n:'Phim',src:'Truy vấn 1 (tất cả phim) · 3 (số suất theo phim) · 5 (phim ≥ 3 suất) · 6 (thời lượng > trung bình)',
+ ctl:()=>`<div class="ctl"><select id="pf" onchange="upd()">${opts([['','Tất cả phim (TV1, TV3)'],['ge3','Phim có từ 3 suất chiếu (TV5)'],['dai','Thời lượng lớn hơn trung bình (TV6)']])}</select></div>`,
+ run:()=>{const avg=PH.reduce((a,p)=>a+p.dur,0)/PH.length,f=v('pf');let a=PH.map(p=>({...p,n:soSuat(p.id)}));if(f=='ge3')a=a.filter(p=>p.n>=3);if(f=='dai')a=a.filter(p=>p.dur>avg);a.sort(f=='dai'?(x,y)=>y.dur-x.dur:(x,y)=>y.n-x.n);
+  return(f=='dai'?`<p class="note">Thời lượng trung bình: ${avg.toFixed(1)} phút</p>`:'')+tbl(['Mã','Tên phim','Thể loại','Thời lượng','Khởi chiếu','Độ tuổi','Số suất'],a.map(p=>[p.id,E(p.ten),p.tl,p.dur+' phút',p.kc,p.dt,p.n]))}},
+fb:{n:'Bắp nước (F&B)',src:'View vw_SanPhamFB_TonKho · Truy vấn 10 (tìm theo tên và khoảng giá)',
+ ctl:()=>`<div class="ctl"><input id="q" placeholder="Tên sản phẩm (VD: Coca)" oninput="upd()"><input id="a" type="number" placeholder="Giá từ" oninput="upd()"><input id="b" type="number" placeholder="Giá đến" oninput="upd()"></div>`,
+ run:()=>{const q=v('q').toLowerCase(),a=+v('a')||0,b=+v('b')||1e12;return tbl(['Mã','Sản phẩm','Giá bán','Tồn kho','Trạng thái'],SP.filter(s=>s.ten.toLowerCase().includes(q)&&s.gia>=a&&s.gia<=b).sort((x,y)=>y.gia-x.gia).map(s=>{const t=ton(s.id);return[s.id,E(s.ten),money(s.gia),t,t==0?'<span class="no">Hết hàng</span>':t<400?'<span class="wn">Sắp hết</span>':'<span class="ok">Còn hàng</span>']}))}},
+hd:{n:'Hóa đơn',src:'View vw_DanhSachHoaDon (hóa đơn kèm khách hàng và nhân viên lập)',
+ ctl:()=>`<div class="ctl"><input id="q" placeholder="Tìm mã HĐ / khách / nhân viên..." oninput="upd()"></div>`,
+ run:()=>{const q=v('q').toLowerCase();return tbl(['Mã HĐ','Ngày lập','Mã KH','Khách hàng','SĐT','Nhân viên lập','Thanh toán','Trạng thái','Tổng tiền',''],HD.map(h=>{const k=KH.find(x=>x.id==h.kh);return[h.id,fmt(h.time),h.kh||'KH-Vãng lai',k?E(k.ten):'Khách vãng lai',k?k.sdt:'',E(NVm[h.nv].ten),h.pt,h.tt,money(h.tong),`<button class="btn" onclick="detail('${h.id}')">Chi tiết</button>`]}).filter(r=>r.slice(0,6).join(' ').toLowerCase().includes(q)).reverse())}},
+kh:{n:'Khách hàng',src:'Truy vấn 4 (RIGHT JOIN KH–HĐ) · 7 (điểm > TB) · 8 (UNION) · 9A (INTERSECT) · 9B (EXCEPT)',
+ ctl:()=>`<div class="ctl"><select id="kq" onchange="upd()">${opts([['4','TV4: Khách hàng và hóa đơn'],['7','TV7: Điểm tích lũy cao hơn trung bình'],['8','TV8: Khách hàng ∪ Nhân viên'],['9a','TV9A: Trùng cả KH và NV (INTERSECT)'],['9b','TV9B: Khách hàng không trùng nhân viên (EXCEPT)']])}</select></div>`,
+ run:()=>{const q=v('kq'),pp=[...KH.map(k=>[k.ten,k.sdt]),...NV.map(n=>[n.ten,n.sdt])],ks=new Set(NV.map(n=>n.ten+n.sdt));
+  if(q=='4')return tbl(['Mã KH','Họ tên','SĐT','Mã HĐ','Ngày lập','Tổng tiền','Trạng thái'],KH.flatMap(k=>{const a=HD.filter(h=>h.kh==k.id);return a.length?a.map(h=>[k.id,E(k.ten),k.sdt,h.id,fmt(h.time),money(h.tong),h.tt]):[[k.id,E(k.ten),k.sdt,'','','','']]}));
+  if(q=='7'){const avg=KH.reduce((a,k)=>a+diem(k.id),0)/KH.length;return`<p class="note">Điểm trung bình: ${avg.toFixed(2)}</p>`+tbl(['Mã KH','Họ tên','SĐT','Điểm tích lũy'],KH.filter(k=>diem(k.id)>avg).sort((a,b)=>diem(b.id)-diem(a.id)).map(k=>[k.id,E(k.ten),k.sdt,diem(k.id)]))}
+  if(q=='8')return tbl(['Họ tên','SĐT','Loại'],[...KH.map(k=>[E(k.ten),k.sdt,'Khách hàng']),...NV.map(n=>[E(n.ten),n.sdt,'Nhân viên'])].sort((a,b)=>a[0].localeCompare(b[0],'vi')));
+  const both=KH.filter(k=>ks.has(k.ten+k.sdt));return q=='9a'?tbl(['Họ tên','SĐT'],both.map(k=>[E(k.ten),k.sdt])):tbl(['Họ tên','SĐT'],KH.filter(k=>!ks.has(k.ten+k.sdt)).map(k=>[E(k.ten),k.sdt]))}},
+dt:{n:'Doanh thu',src:'View vw_ThongKeDoanhThuPhim (số vé bán và doanh thu theo phim)',ctl:()=>'',
+ run:()=>{const a=PH.map(p=>{const ids=new Set(SC.filter(s=>s.ph==p.id).map(s=>s.id)),vs=VE.filter(x=>ids.has(x.sc));return[p.id,E(p.ten),p.tl,vs.length,vs.reduce((s,x)=>s+x.gia,0)]});
+  return`<p class="note">Tổng: ${a.reduce((s,r)=>s+r[3],0)} vé · ${money(a.reduce((s,r)=>s+r[4],0))}</p>`+tbl(['Mã','Phim','Thể loại','Tổng vé bán','Doanh thu vé'],a.sort((x,y)=>y[4]-x[4]).map(r=>[r[0],r[1],r[2],r[3],money(r[4])]))}},
+truc:{n:'Lịch trực',src:'View vw_LichTrucNhanVien (phân công ca trực nhân viên)',
+ ctl:()=>`<div class="ctl"><select id="td" onchange="upd()">${opts([['','Tất cả ngày'],...NG.map(n=>[n,n])],'2026-11-01')}</select></div>`,
+ run:()=>tbl(['Mã PC','Nhân viên','Chức vụ','Ngày','Ca','Phòng trực'],PCT.filter(p=>!v('td')||p.ngay==v('td')).map(p=>{const n=NVm[p.nv];return[p.id,E(n.ten),n.cv,p.ngay,p.ca,p.room?PCm[p.room].ten:'Toàn khu vực rạp']}))}};
+let cur='lich';
+function show(k){cur=k;document.getElementById('nav').innerHTML=Object.keys(T).map(x=>`<button class="${x==k?'on':''}" onclick="show('${x}')">${T[x].n}</button>`).join('');
+ document.getElementById('main').innerHTML=`<p class="src">${T[k].src}</p>${T[k].ctl()}<div id="res"></div>`;upd()}
+const upd=()=>document.getElementById('res').innerHTML=T[cur].run();
+const toast=s=>{const t=document.getElementById('t');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',3000)};
+const openM=h=>{document.getElementById('mc').innerHTML=h;document.getElementById('m').style.display='flex'},closeM=()=>document.getElementById('m').style.display='none';
+function detail(id){const h=HD.find(x=>x.id==id);openM(`<h3>Hóa đơn ${id}</h3>${tbl(['Vé','Phim','Suất','Ghế','Giá'],VE.filter(x=>x.hd==id).map(x=>{const s=SCm[x.sc];return[x.id,E(PHm[s.ph].ten),s.ngay+' '+s.bd,x.ghe,money(x.gia)]}))}<br>${tbl(['Sản phẩm','SL','Thành tiền'],CT.filter(c=>c.hd==id).map(c=>[E(SPm[c.sp].ten),c.sl,money(c.tt)]))}<p class="tot">Tổng: ${money(h.tong)}</p><button class="btn" onclick="closeM()">Đóng</button>`)}
+/* ===== Đặt vé ===== */
+let B;
+function book(id){const s=SCm[id],p=PHm[s.ph],r=PCm[s.room];B={s,r,sel:new Set(),fb:{}};
+ openM(`<h3>${E(p.ten)} <small>(${p.dt})</small></h3><p class="note">${r.ten} · ${r.loai} · ${s.ngay} · ${s.bd}–${s.kt}</p><div class="screen">MÀN HÌNH</div><div id="sm"></div>
+ <p class="note">Ghế VIP/Sweetbox/Recliner có viền màu; ghế gạch ngang đã bán. Giá hiển thị khi di chuột.</p>
+ <div class="ctl"><select id="fs">${opts(SP.map(x=>[x.id,x.ten+' – '+money(x.gia)]))}</select><input id="fq" type="number" min="1" value="1" style="width:70px"><button class="btn" onclick="addFb()">+ Bắp nước</button></div><div id="fbl"></div>
+ <div class="ctl"><input id="sdt" placeholder="SĐT khách (tuỳ chọn)" oninput="lk()"><input id="ten" maxlength="50" placeholder="Họ tên (nếu SĐT mới)"></div><p class="note" id="kn"></p>
+ <div class="ctl"><select id="nv">${opts(NV.filter(n=>n.cv=='Nhân viên bán vé').map(n=>[n.id,'NV: '+n.ten]))}</select><select id="pt">${opts(PT.map(x=>[x,x]))}</select></div>
+ <div class="tot" id="tot"></div><button class="btn p" onclick="confirmB()">Thanh toán</button> <button class="btn" onclick="closeM()">Hủy</button>`);drawSeats();calc()}
+function drawSeats(){const sd=new Set(sold(B.s.id).map(x=>x.ghe));let h='';
+ for(const hg of 'ABCDEFGH'.slice(0,B.r.h)){h+=`<div class="row"><b>${hg}</b>`;for(let n=1;n<=B.r.c;n++){const g=B.r.id+'-'+hg+pad(n,2),t=gType(B.r.id,hg),x=sd.has(g);h+=`<button class="sb ${t=='4DX Motion'?'4DX':t} ${x?'s':''} ${B.sel.has(g)?'on':''}" ${x?'disabled':''} title="${t} · ${money(price(B.r.id,t,B.s.bd))}" onclick="tg('${g}')">${n}</button>`}h+='</div>'}
+ document.getElementById('sm').innerHTML=h}
+function tg(g){B.sel.has(g)?B.sel.delete(g):B.sel.add(g);drawSeats();calc()}
+const seatP=g=>price(B.r.id,gType(B.r.id,g.split('-')[1][0]),B.s.bd);
+function addFb(){const sp=v('fs'),q=Math.max(1,+v('fq')||1);B.fb[sp]=(B.fb[sp]||0)+q;calc()}
+function rmFb(sp){delete B.fb[sp];calc()}
+function calc(){const fe=Object.entries(B.fb);document.getElementById('fbl').innerHTML=fe.map(([s,q])=>`<div class="note">${E(SPm[s].ten)} × ${q} = ${money(q*SPm[s].gia)} <a href="#" onclick="rmFb('${s}');return false">xóa</a></div>`).join('');
+ const tv=[...B.sel].reduce((a,g)=>a+seatP(g),0),tf=fe.reduce((a,[s,q])=>a+q*SPm[s].gia,0);
+ document.getElementById('tot').textContent=`${B.sel.size} vé: ${money(tv)} · Bắp nước: ${money(tf)} · Tổng: ${money(tv+tf)}`}
+function lk(){const k=KH.find(x=>x.sdt==v('sdt').trim());document.getElementById('kn').textContent=k?`Khách hàng: ${k.ten} (${diem(k.id)} điểm)`:''}
+function confirmB(){const g=[...B.sel];if(!g.length)return alert('Vui lòng chọn ít nhất 1 ghế.');
+ const sdt=v('sdt').trim();let kh=null;
+ if(sdt){if(!/^0\d{9,10}$/.test(sdt))return alert('Số điện thoại không hợp lệ.');let k=KH.find(x=>x.sdt==sdt);
+  if(!k){const t=v('ten').trim();if(!t)return alert('SĐT mới: vui lòng nhập họ tên để tạo khách hàng.');k={id:'KH'+pad(KH.length+1,3),ten:t,sdt};KH.push(k)}kh=k.id}
+ for(const s in B.fb)if(B.fb[s]>ton(s))return alert('Không đủ tồn kho: '+SPm[s].ten);
+ const id=addOrder({sc:B.s.id,seats:g,kh,nv:v('nv'),pt:v('pt'),time:Date.now(),fb:Object.entries(B.fb)});
+ closeM();toast(`Đã tạo hóa đơn ${id} – ${money(HD[HD.length-1].tong)}`);upd()}
+show('lich');
+</script></body></html>
